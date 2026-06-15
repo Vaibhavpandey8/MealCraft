@@ -2,6 +2,8 @@
 
 MealCraft is a premium food subscription service and AI-powered meal planner designed to make clean eating effortless and delicious. The application automatically calculates caloric targets based on user metrics and generates customized weekly meal plans that work with any diet.
 
+![MealCraft Homepage Preview](./frontend/public/img/homepage_preview.png)
+
 ---
 
 ## 🚀 Key Features
