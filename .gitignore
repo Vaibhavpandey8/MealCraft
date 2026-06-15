@@ -1,0 +1,30 @@
+# Dependency directories
+node_modules/
+
+# Local env files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Vite / Build outputs
+dist/
+dist-ssr/
+*.local
+
+# Large media files
+BG.mp4
+*.mp4
+
+# Editor / System files
+.vscode/
+.idea/
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+logs/
+*.log
