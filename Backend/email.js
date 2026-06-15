@@ -1,5 +1,8 @@
 const nodemailer = require('nodemailer');
 
+const emailUser = process.env.EMAIL_USER || process.env.userEmail || 'vaibhavpandey729@gmail.com';
+const emailPass = process.env.EMAIL_PASS || process.env.userPass;
+
 let transporter = null;
 
 const getTransporter = async () => {
@@ -13,8 +16,8 @@ const getTransporter = async () => {
       secure: false,
       requireTLS: true,
       auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
+        user: emailUser,
+        pass: emailPass,
       },
       tls: {
         rejectUnauthorized: false
@@ -79,7 +82,7 @@ const sendMailHelper = async (mailOptions) => {
     const data = JSON.stringify({
       sender: {
         name: "MealCraft",
-        email: process.env.EMAIL_USER // Must be a verified sender email in Brevo
+        email: emailUser // Must be a verified sender email in Brevo
       },
       to: [{ email: mailOptions.to }],
       subject: mailOptions.subject,
@@ -138,7 +141,7 @@ const sendVerificationEmail = async (email, fullName, token) => {
   const verifyURL = `${backendUrl}/api/auth/verify-email?token=${token}`;
 
   const info = await sendMailHelper({
-    from: `"MealCraft" <${process.env.EMAIL_USER || 'no-reply@mealcraft.com'}>`,
+    from: `"MealCraft" <${emailUser}>`,
     to: email,
     subject: '✅ Verify your MealCraft account',
     html: `
@@ -168,7 +171,7 @@ const sendVerificationEmail = async (email, fullName, token) => {
 
 const sendPasswordResetEmail = async (email, fullName, resetURL) => {
   const info = await sendMailHelper({
-    from: `"MealCraft" <${process.env.EMAIL_USER || 'no-reply@mealcraft.com'}>`,
+    from: `"MealCraft" <${emailUser}>`,
     to: email,
     subject: '🔒 Reset your MealCraft password',
     html: `
@@ -199,7 +202,7 @@ const sendPasswordResetEmail = async (email, fullName, resetURL) => {
 
 const sendOTPEmail = async (email, fullName, otp) => {
   return await sendMailHelper({
-    from: `"MealCraft" <${process.env.EMAIL_USER || 'no-reply@mealcraft.com'}>`,
+    from: `"MealCraft" <${emailUser}>`,
     to: email,
     subject: '🔑 Your MealCraft Verification OTP Code',
     html: `
