@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import CustomCursor from "../components/CustomCursor";
+import { API_BASE_URL } from "../utils/api";
 
 const Profile = () => {
   const { user, token, login } = useAuth();
@@ -18,7 +19,7 @@ const Profile = () => {
     setError("");
 
     try {
-      const res = await fetch("http://localhost:5000/api/users/profile", {
+      const res = await fetch(`${API_BASE_URL}/api/users/profile`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

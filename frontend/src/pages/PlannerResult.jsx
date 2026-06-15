@@ -3,6 +3,7 @@ import { useCart } from "../context/CartContext";
 import { Link, useNavigate } from "react-router-dom";
 import CustomCursor from "../components/CustomCursor";
 import { getMealMacros } from "../utils/nutrition";
+import { API_BASE_URL } from "../utils/api";
 
 const categoryLabels = {
   vegetarian: "Pure Veg 🟢",
@@ -55,7 +56,7 @@ const PlannerResult = () => {
   useEffect(() => {
     const fetchMeals = async () => {
       try {
-        const res = await fetch("http://localhost:5000/api/meals");
+        const res = await fetch(`${API_BASE_URL}/api/meals`);
         const data = await res.json();
         setMeals(Array.isArray(data) ? data : []);
       } catch (err) {

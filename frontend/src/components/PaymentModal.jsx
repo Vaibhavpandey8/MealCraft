@@ -8,6 +8,7 @@ import {
 } from "@stripe/react-stripe-js";
 import { useAuth } from "../context/AuthContext";
 import CustomCursor from "./CustomCursor";
+import { API_BASE_URL } from "../utils/api";
 
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
 
@@ -26,7 +27,7 @@ const CheckoutForm = ({ cartItems, totalAmount, address, onSuccess, onClose }) =
     try {
       const mealNames = cartItems.map(item => `${item.name} x ${item.quantity}`).join(", ");
       
-      const res = await fetch("http://localhost:5000/api/payment/create-intent", {
+      const res = await fetch(`${API_BASE_URL}/api/payment/create-intent`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -59,7 +60,7 @@ const CheckoutForm = ({ cartItems, totalAmount, address, onSuccess, onClose }) =
       } else if (result.paymentIntent.status === "succeeded") {
         // Save each item as a separate order record
         for (const item of cartItems) {
-          await fetch("http://localhost:5000/api/orders", {
+          await fetch(`${API_BASE_URL}/api/orders`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",

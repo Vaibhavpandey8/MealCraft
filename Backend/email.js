@@ -64,7 +64,8 @@ const getTransporter = async () => {
 };
 
 const sendVerificationEmail = async (email, fullName, token) => {
-  const verifyURL = `http://localhost:5000/api/auth/verify-email?token=${token}`;
+  const backendUrl = process.env.BACKEND_URL || 'http://localhost:5000';
+  const verifyURL = `${backendUrl}/api/auth/verify-email?token=${token}`;
   const mailTransporter = await getTransporter();
 
   const info = await mailTransporter.sendMail({

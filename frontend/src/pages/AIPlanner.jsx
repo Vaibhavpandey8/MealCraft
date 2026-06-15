@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import CustomCursor from "../components/CustomCursor";
+import { API_BASE_URL } from "../utils/api";
 
 const activityFactors = {
   sedentary: { label: "Sedentary (Little/no exercise)", multiplier: 1.2 },
@@ -38,7 +39,7 @@ const AIPlanner = () => {
   useEffect(() => {
     const fetchMeals = async () => {
       try {
-        const res = await fetch("http://localhost:5000/api/meals");
+        const res = await fetch(`${API_BASE_URL}/api/meals`);
         const data = await res.json();
         setMeals(Array.isArray(data) ? data : []);
       } catch (err) {

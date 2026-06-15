@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import CustomCursor from "../components/CustomCursor";
+import { API_BASE_URL } from "../utils/api";
 
 const Orders = () => {
   const { user, token } = useAuth();
@@ -14,7 +15,7 @@ const Orders = () => {
 
   const fetchOrders = async () => {
     try {
-      const res = await fetch("http://localhost:5000/api/orders/my", {
+      const res = await fetch(`${API_BASE_URL}/api/orders/my`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -30,7 +31,7 @@ const Orders = () => {
 
   const cancelOrder = async (orderId) => {
     try {
-      const res = await fetch(`http://localhost:5000/api/orders/${orderId}/cancel`, {
+      const res = await fetch(`${API_BASE_URL}/api/orders/${orderId}/cancel`, {
         method: "PUT",
         headers: {
           Authorization: `Bearer ${token}`,

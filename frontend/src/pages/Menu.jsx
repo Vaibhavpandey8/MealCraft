@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useCart } from "../context/CartContext";
 import CustomCursor from "../components/CustomCursor";
 import { getMealMacros } from "../utils/nutrition";
+import { API_BASE_URL } from "../utils/api";
 
 const categoryLabels = {
   all: "All Meals",
@@ -63,7 +64,7 @@ const Menu = () => {
   useEffect(() => {
     const fetchMeals = async () => {
       try {
-        const res = await fetch("http://localhost:5000/api/meals");
+        const res = await fetch(`${API_BASE_URL}/api/meals`);
         const data = await res.json();
         setMeals(Array.isArray(data) ? data : []);
       } catch (err) {

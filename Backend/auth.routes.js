@@ -19,11 +19,12 @@ router.get('/google',
 );
 
 router.get('/google/callback',
-  passport.authenticate('google', { failureRedirect: 'http://localhost:5173' }),
+  passport.authenticate('google', { failureRedirect: process.env.CLIENT_URL || 'http://localhost:5173' }),
   (req, res) => {
     const token = generateToken(req.user._id);
     const photo = req.user.photo || '';
-    res.redirect(`http://localhost:5173?token=${token}&name=${encodeURIComponent(req.user.fullName)}&photo=${encodeURIComponent(photo)}`);
+    const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
+    res.redirect(`${clientUrl}?token=${token}&name=${encodeURIComponent(req.user.fullName)}&photo=${encodeURIComponent(photo)}`);
   }
 );
 

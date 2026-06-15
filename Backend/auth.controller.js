@@ -104,7 +104,8 @@ const verifyEmail = async (req, res, next) => {
     user.verificationToken = null;
     await user.save();
 
-    res.redirect('http://localhost:5173?verified=true');
+    const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
+    res.redirect(`${clientUrl}?verified=true`);
 
   } catch (error) {
     next(error);
@@ -200,7 +201,8 @@ const forgotPassword = async (req, res, next) => {
     await user.save();
 
     // Create reset URL
-    const resetURL = `http://localhost:5173/reset-password/${resetToken}`;
+    const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
+    const resetURL = `${clientUrl}/reset-password/${resetToken}`;
 
     try {
       const info = await sendPasswordResetEmail(email, user.fullName, resetURL);

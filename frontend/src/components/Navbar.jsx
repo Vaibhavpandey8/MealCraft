@@ -5,6 +5,7 @@ import { useCart } from "../context/CartContext";
 import { gsap } from "gsap";
 import PaymentModal from "./PaymentModal";
 import { getMealMacros } from "../utils/nutrition";
+import { API_BASE_URL } from "../utils/api";
 
 const Navbar = () => {
   const {
@@ -112,7 +113,7 @@ const Navbar = () => {
     setError("");
 
     try {
-      const res = await fetch("http://localhost:5000/api/users/login", {
+      const res = await fetch(`${API_BASE_URL}/api/users/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(loginData),
@@ -143,7 +144,7 @@ const Navbar = () => {
     setDevLink("");
 
     try {
-      const res = await fetch("http://localhost:5000/api/users/register", {
+      const res = await fetch(`${API_BASE_URL}/api/users/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(signupData),
@@ -177,7 +178,7 @@ const Navbar = () => {
     setSuccess("");
 
     try {
-      const res = await fetch("http://localhost:5000/api/users/verify-otp", {
+      const res = await fetch(`${API_BASE_URL}/api/users/verify-otp`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: verifyEmail, otp: otpCode }),
@@ -212,7 +213,7 @@ const Navbar = () => {
     setSuccess("");
 
     try {
-      const res = await fetch("http://localhost:5000/api/users/forgot-password", {
+      const res = await fetch(`${API_BASE_URL}/api/users/forgot-password`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: forgotEmail }),
@@ -799,7 +800,7 @@ const Navbar = () => {
                   or
                   <span style={{ flex: 1, height: "1px", backgroundColor: "#eee", marginLeft: "10px" }}></span>
                 </div>
-                <a href="http://localhost:5000/api/auth/google" className="btn-google" style={{ justifyContent: "center" }}>
+                <a href={`${API_BASE_URL}/api/auth/google`} className="btn-google" style={{ justifyContent: "center" }}>
                   <img
                     src="https://developers.google.com/identity/images/g-logo.png"
                     width="18"
