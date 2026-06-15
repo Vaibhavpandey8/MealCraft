@@ -29,36 +29,14 @@ const register = async (req, res, next) => {
         userExists.otpExpires = otpExpires;
         await userExists.save();
 
-        if (process.env.NODE_ENV === 'production') {
-          sendOTPEmail(email, fullName, otp).catch((emailError) => {
-            console.log('OTP Email sending failed in background:', emailError.message);
-          });
-          return res.status(201).json({
-            message: 'OTP verification code sent to your email! Please verify.',
-            email
-          });
-        } else {
-          let emailInfo;
-          try {
-            emailInfo = await sendOTPEmail(email, fullName, otp);
-          } catch (emailError) {
-            console.log('OTP Email sending failed:', emailError.message);
-          }
+        sendOTPEmail(email, fullName, otp).catch((emailError) => {
+          console.log('OTP Email sending failed in background:', emailError.message);
+        });
 
-          if (emailInfo && emailInfo.previewUrl) {
-            return res.status(201).json({
-              message: 'OTP verification code sent! Virtual test mail delivered.',
-              email,
-              devLink: emailInfo.previewUrl,
-              devOtp: otp
-            });
-          }
-
-          return res.status(201).json({
-            message: 'OTP verification code sent to your email! Please verify.',
-            email
-          });
-        }
+        return res.status(201).json({
+          message: 'OTP verification code sent to your email! Please verify.',
+          email
+        });
       }
     }
 
@@ -72,36 +50,14 @@ const register = async (req, res, next) => {
       isVerified: false,
     });
 
-    if (process.env.NODE_ENV === 'production') {
-      sendOTPEmail(email, fullName, otp).catch((emailError) => {
-        console.log('OTP Email sending failed in background:', emailError.message);
-      });
-      return res.status(201).json({
-        message: 'Registration successful! OTP sent to your email to verify your account.',
-        email
-      });
-    } else {
-      let emailInfo;
-      try {
-        emailInfo = await sendOTPEmail(email, fullName, otp);
-      } catch (emailError) {
-        console.log('OTP Email sending failed:', emailError.message);
-      }
+    sendOTPEmail(email, fullName, otp).catch((emailError) => {
+      console.log('OTP Email sending failed in background:', emailError.message);
+    });
 
-      if (emailInfo && emailInfo.previewUrl) {
-        return res.status(201).json({
-          message: 'OTP verification code sent! Virtual test mail delivered.',
-          email,
-          devLink: emailInfo.previewUrl,
-          devOtp: otp
-        });
-      }
-
-      return res.status(201).json({
-        message: 'Registration successful! OTP sent to your email to verify your account.',
-        email
-      });
-    }
+    res.status(201).json({
+      message: 'Registration successful! OTP sent to your email to verify your account.',
+      email
+    });
 
   } catch (error) {
     next(error);
@@ -224,44 +180,19 @@ const forgotPassword = async (req, res, next) => {
     const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
     const resetURL = `${clientUrl}/reset-password/${resetToken}`;
 
-    if (process.env.NODE_ENV === 'production') {
-      sendPasswordResetEmail(email, user.fullName, resetURL).catch((emailError) => {
-        console.log('Password reset email failed in background:', emailError.message);
-      });
-      return res.json({ message: 'Password reset link sent to your email!' });
-    } else {
-      try {
-        const info = await sendPasswordResetEmail(email, user.fullName, resetURL);
+    sendPasswordResetEmail(email, user.fullName, resetURL).catch((emailError) => {
+      console.log('Password reset email failed in background:', emailError.message);
+    });
 
-        if (info && info.previewUrl) {
-          return res.json({
-            message: 'Password reset link sent! Virtual test mail delivered successfully.',
-            devLink: resetURL,
-            previewUrl: info.previewUrl
-          });
-        }
+    // Provide recovery link fallback in logs for developer convenience
+    console.log('=== PASSWORD RESET LINK (Background Send) ===');
+    console.log(resetURL);
+    console.log('============================================');
 
-        res.json({ message: 'Password reset link sent to your email!' });
-      } catch (emailError) {
-        console.log('Nodemailer failed to send password reset email:', emailError.message);
-        console.log('=== DEVELOPMENT FALLBACK PASSWORD RESET LINK ===');
-        console.log(resetURL);
-        console.log('================================================');
-
-        // Development fallback: succeed and return the link
-        if (process.env.NODE_ENV === 'development' || !process.env.NODE_ENV) {
-          return res.json({
-            message: 'Email service is unavailable, but a recovery link has been generated for development.',
-            devLink: resetURL
-          });
-        }
-
-        user.resetPasswordToken = null;
-        user.resetPasswordExpire = null;
-        await user.save();
-        return res.status(500).json({ message: 'Error sending email. Please try again later.' });
-      }
-    }
+    return res.json({
+      message: 'Password reset link sent to your email!',
+      devLink: process.env.NODE_ENV === 'production' ? undefined : resetURL // include helper link in non-prod
+    });
 
   } catch (error) {
     next(error);
