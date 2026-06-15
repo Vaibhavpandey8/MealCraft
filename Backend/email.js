@@ -5,14 +5,23 @@ let transporter = null;
 const getTransporter = async () => {
   if (transporter) return transporter;
 
-  // Try using Gmail first
+  // Try using Gmail first (with YatraMitra configurations)
   try {
     const gmailTransporter = nodemailer.createTransport({
-      service: 'gmail',
+      host: "smtp.gmail.com",
+      port: 587,
+      secure: false,
+      requireTLS: true,
       auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS,
       },
+      tls: {
+        rejectUnauthorized: false
+      },
+      family: 4,          // Force IPv4 (essential for Render)
+      connectionTimeout: 10000,
+      greetingTimeout: 10000
     });
 
     // Verify Gmail transport
@@ -27,7 +36,7 @@ const getTransporter = async () => {
     transporter = gmailTransporter;
     return transporter;
   } catch (err) {
-    console.log("Gmail SMTP authentication failed, generating Ethereal test inbox...");
+    console.log("Gmail SMTP authentication failed, generating Ethereal test inbox...", err.message);
     
     // Fallback: create ethereal test account
     try {
@@ -63,12 +72,72 @@ const getTransporter = async () => {
   }
 };
 
+const sendMailHelper = async (mailOptions) => {
+  // 1. If Brevo API key is available, use the HTTP API (works on Render free tier without port blocks)
+  if (process.env.BREVO_API_KEY) {
+    console.log(`[MAILER] Sending email via Brevo HTTP API to ${mailOptions.to}...`);
+    const data = JSON.stringify({
+      sender: {
+        name: "MealCraft",
+        email: process.env.EMAIL_USER // Must be a verified sender email in Brevo
+      },
+      to: [{ email: mailOptions.to }],
+      subject: mailOptions.subject,
+      htmlContent: mailOptions.html || mailOptions.text
+    });
+
+    const https = require('https');
+    const options = {
+      hostname: "api.brevo.com",
+      port: 443,
+      path: "/v3/smtp/email",
+      method: "POST",
+      headers: {
+        "api-key": process.env.BREVO_API_KEY,
+        "Content-Type": "application/json",
+        "Content-Length": Buffer.byteLength(data)
+      }
+    };
+
+    return new Promise((resolve, reject) => {
+      const req = https.request(options, (res) => {
+        let body = "";
+        res.on("data", (chunk) => (body += chunk));
+        res.on("end", () => {
+          if (res.statusCode >= 200 && res.statusCode < 300) {
+            console.log(`[MAILER] Email sent successfully via Brevo: ${body}`);
+            let parsed = { messageId: 'brevo-id' };
+            try {
+              parsed = JSON.parse(body);
+            } catch (e) {}
+            resolve(parsed);
+          } else {
+            console.error(`[MAILER ERROR] Brevo API returned status ${res.statusCode}: ${body}`);
+            reject(new Error(`Brevo API status ${res.statusCode}`));
+          }
+        });
+      });
+
+      req.on("error", (err) => {
+        console.error(`[MAILER ERROR] Network issue calling Brevo: ${err}`);
+        reject(err);
+      });
+
+      req.write(data);
+      req.end();
+    });
+  }
+
+  // 2. Fallback to Nodemailer transporter
+  const mailTransporter = await getTransporter();
+  return await mailTransporter.sendMail(mailOptions);
+};
+
 const sendVerificationEmail = async (email, fullName, token) => {
   const backendUrl = process.env.BACKEND_URL || 'http://localhost:5000';
   const verifyURL = `${backendUrl}/api/auth/verify-email?token=${token}`;
-  const mailTransporter = await getTransporter();
 
-  const info = await mailTransporter.sendMail({
+  const info = await sendMailHelper({
     from: `"MealCraft" <${process.env.EMAIL_USER || 'no-reply@mealcraft.com'}>`,
     to: email,
     subject: '✅ Verify your MealCraft account',
@@ -86,7 +155,10 @@ const sendVerificationEmail = async (email, fullName, token) => {
     `,
   });
 
-  const preview = nodemailer.getTestMessageUrl(info);
+  let preview = null;
+  try {
+    preview = nodemailer.getTestMessageUrl(info);
+  } catch (err) {}
   if (preview) {
     console.log("Verification Email Inbox: %s", preview);
     info.previewUrl = preview;
@@ -95,9 +167,7 @@ const sendVerificationEmail = async (email, fullName, token) => {
 };
 
 const sendPasswordResetEmail = async (email, fullName, resetURL) => {
-  const mailTransporter = await getTransporter();
-  
-  const info = await mailTransporter.sendMail({
+  const info = await sendMailHelper({
     from: `"MealCraft" <${process.env.EMAIL_USER || 'no-reply@mealcraft.com'}>`,
     to: email,
     subject: '🔒 Reset your MealCraft password',
@@ -116,7 +186,10 @@ const sendPasswordResetEmail = async (email, fullName, resetURL) => {
     `,
   });
 
-  const preview = nodemailer.getTestMessageUrl(info);
+  let preview = null;
+  try {
+    preview = nodemailer.getTestMessageUrl(info);
+  } catch (err) {}
   if (preview) {
     console.log("Password Reset Email Inbox: %s", preview);
     info.previewUrl = preview;
@@ -125,9 +198,7 @@ const sendPasswordResetEmail = async (email, fullName, resetURL) => {
 };
 
 const sendOTPEmail = async (email, fullName, otp) => {
-  const mailTransporter = await getTransporter();
-
-  await mailTransporter.sendMail({
+  return await sendMailHelper({
     from: `"MealCraft" <${process.env.EMAIL_USER || 'no-reply@mealcraft.com'}>`,
     to: email,
     subject: '🔑 Your MealCraft Verification OTP Code',
