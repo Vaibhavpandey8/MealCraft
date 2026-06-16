@@ -800,7 +800,7 @@ const Navbar = () => {
                   or
                   <span style={{ flex: 1, height: "1px", backgroundColor: "#eee", marginLeft: "10px" }}></span>
                 </div>
-                <a href={`${API_BASE_URL}/api/auth/google`} className="btn-google" style={{ justifyContent: "center" }}>
+                <a href={`${API_BASE_URL}/api/auth/google?client_url=${window.location.origin}`} className="btn-google" style={{ justifyContent: "center" }}>
                   <img
                     src="https://developers.google.com/identity/images/g-logo.png"
                     width="18"

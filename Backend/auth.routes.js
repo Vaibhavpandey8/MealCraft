@@ -14,16 +14,33 @@ router.post('/forgot-password', forgotPassword);
 router.post('/reset-password/:token', resetPassword);
 router.post('/verify-otp', verifyOTP);
 
-router.get('/google',
-  passport.authenticate('google', { scope: ['profile', 'email'] })
-);
+router.get('/google', (req, res, next) => {
+  const clientUrl = req.query.client_url || process.env.CLIENT_URL || 'http://localhost:5173';
+  passport.authenticate('google', { 
+    scope: ['profile', 'email'],
+    state: Buffer.from(clientUrl).toString('base64')
+  })(req, res, next);
+});
 
 router.get('/google/callback',
   passport.authenticate('google', { failureRedirect: process.env.CLIENT_URL || 'http://localhost:5173' }),
   (req, res) => {
     const token = generateToken(req.user._id);
     const photo = req.user.photo || '';
-    const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
+    
+    let clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
+    if (req.query.state) {
+      try {
+        const decoded = Buffer.from(req.query.state, 'base64').toString('ascii');
+        // Simple safety check to prevent open redirects to malicious sites
+        if (decoded.startsWith('http://localhost') || decoded.startsWith('https://mealcraft-ai.vercel.app')) {
+          clientUrl = decoded;
+        }
+      } catch (err) {
+        console.error('Error decoding state:', err);
+      }
+    }
+    
     res.redirect(`${clientUrl}?token=${token}&name=${encodeURIComponent(req.user.fullName)}&photo=${encodeURIComponent(photo)}`);
   }
 );
